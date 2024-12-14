@@ -1,8 +1,6 @@
-# Gas Turbine CO and NOx Emission Dataset Analysis
-
 # Installation des librairies nécessaires:
 install.packages(c("tidyverse", "ggplot2", "dplyr", "caret", "MASS", "reshape2", 
-                 "GGally","robustbase", "ggcorrplot", "car", "lmtest", "nortest", "moments", "boot"))
+                 "GGally", "robustbase", "ggcorrplot", "car", "lmtest", "nortest", "moments", "boot"))
 
 # Charger les bibliothèques:
 library(tidyverse)
@@ -19,51 +17,58 @@ library(lmtest)
 library(nortest)
 library(moments)
 library(boot)
+
 # Charger les jeux de données:
 gt_2011 <- read.table(file = file.choose(), header = TRUE, sep = ",", dec = ".", na.strings = "")
 gt_2012 <- read.table(file = file.choose(), header = TRUE, sep = ",", dec = ".", na.strings = "")
 gt_2013 <- read.table(file = file.choose(), header = TRUE, sep = ",", dec = ".", na.strings = "")
 gt_2014 <- read.table(file = file.choose(), header = TRUE, sep = ",", dec = ".", na.strings = "")
 gt_2015 <- read.table(file = file.choose(), header = TRUE, sep = ",", dec = ".", na.strings = "")
+ai4i2020 <- read.table(file = file.choose(), header = TRUE, sep = ",", dec = ".", na.strings = "")
 
-# Combiner les jeux de données en un seul:
+# Combiner les jeux de données du Gas Turbine Dataset en un seul:
 gt_combined <- rbind(gt_2011, gt_2012, gt_2013, gt_2014, gt_2015)
 
 # Creation d'un fichier pour stocker les graphes:
 plot_path <- "C:\\Users\\ameni\\OneDrive\\Desktop\\stat\\projet stat\\plots"
-if(!dir.exists(plot_path)) {
+if (!dir.exists(plot_path)) {
   dir.create(plot_path)
 }
 
 # Exploration initiale des données:
+# Gas Turbine Dataset
 summary(gt_combined)
 str(gt_combined)
 
+# AI4I Dataset
+summary(ai4i2020)
+str(ai4i2020)
+
 #------------------------Préparation des données-------------------------------------
 
-# 1. Vérifier les valeurs manquantes dans chaque colonne:
-sapply(gt_combined, function(x) sum(is.na(x))) # Pas de valeurs manquantes
+# 1. Vérifier les valeurs manquantes dans chaque colonne :
+sapply(gt_combined, function(x) sum(is.na(x))) # Pas de valeurs manquantes pour le Gas Turbine Dataset
+sapply(ai4i2020, function(x) sum(is.na(x)))   # Vérification des valeurs manquantes pour le AI4I Dataset
 
-# 2. Traitement des valeurs aberrantes (Capping des outliers):
+# 2. Traitement des valeurs aberrantes (Capping des outliers) :
+
+# Identification des colonnes numériques pour le Gas Turbine Dataset
+numeric_columns_gt <- names(gt_combined)[vapply(gt_combined, is.numeric, logical(1))]
+
+# Identification des colonnes numériques pour le AI4I Dataset
+numeric_columns_ai4i <- names(ai4i2020)[vapply(ai4i2020, is.numeric, logical(1))]
+
+# Afficher les colonnes numériques pour chaque dataset
+print("Colonnes numériques pour le Gas Turbine Dataset :")
+print(numeric_columns_gt)
+
+print("Colonnes numériques pour le AI4I Dataset :")
+print(numeric_columns_ai4i)
+
 # Boxplot pour chaque colonne numérique avant le traitement des valeurs aberrantes
-# Vérification de la structure du jeu de données
-str(gt_combined)
-str(gt_2011)
-str(gt_2012)
-names(gt_2011)
-names(gt_2012)
-gt_combined <- rbind(gt_2011, gt_2012, gt_2013, gt_2014, gt_2015)
-str(gt_combined)
-
-# Identification des colonnes numériques
-numeric_columns <- names(gt_combined)[vapply(gt_combined, is.numeric, logical(1))]
-
-# Afficher les colonnes numériques pour validation
-print(numeric_columns)
-
-# Boxplot pour chaque colonne numérique avant le traitement des valeurs aberrantes
-for (col in numeric_columns) {
-  png(filename = paste0(plot_path, "/Boxplot_Before_", col, ".png"))
+# Pour le Gas Turbine Dataset
+for (col in numeric_columns_gt) {
+  png(filename = paste0(plot_path, "/Boxplot_Before_GT_", col, ".png"))
   boxplot(
     gt_combined[[col]], 
     main = paste("Boxplot for", col, "Before Handling Outliers (Capping)"), 
@@ -74,7 +79,21 @@ for (col in numeric_columns) {
   dev.off()
 }
 
-# Définir une fonction pour capper les valeurs aberrantes basées sur l'IQR
+# Pour le AI4I Dataset
+for (col in numeric_columns_ai4i) {
+  png(filename = paste0(plot_path, "/Boxplot_Before_AI4I_", col, ".png"))
+  boxplot(
+    ai4i2020[[col]], 
+    main = paste("Boxplot for", col, "Before Handling Outliers (Capping)"), 
+    ylab = col, 
+    col = "lightblue", 
+    outcol = "red"
+  )
+  dev.off()
+}
+
+
+# Fonction pour capper les valeurs aberrantes basées sur l'IQR
 cap_outliers <- function(data, column) {
   Q1 <- quantile(data[[column]], 0.25, na.rm = TRUE)
   Q3 <- quantile(data[[column]], 0.75, na.rm = TRUE)
@@ -86,17 +105,22 @@ cap_outliers <- function(data, column) {
   return(data)
 }
 
-# Appliquer le capping à toutes les colonnes numériques
-for (col in numeric_columns) {
+# Appliquer le capping aux colonnes numériques du Gas Turbine Dataset
+for (col in numeric_columns_gt) {
   gt_combined <- cap_outliers(gt_combined, col)
 }
 
-# Boxplot pour chaque colonne numérique après le capping
-for (col in numeric_columns) {
-  png(filename = paste0(plot_path, "Boxplot_After_", col, ".png"))
+# Appliquer le capping aux colonnes numériques du AI4I Dataset
+for (col in numeric_columns_ai4i) {
+  ai4i2020 <- cap_outliers(ai4i2020, col)
+}
+
+# Boxplot pour chaque colonne numérique après le capping (Gas Turbine Dataset)
+for (col in numeric_columns_gt) {
+  png(filename = paste0(plot_path, "/Boxplot_After_GT_", col, ".png"))
   boxplot(
     gt_combined[[col]], 
-    main = paste("Boxplot for", col, "After Handling Outliers (Capping)"), 
+    main = paste("Boxplot for", col, "(Gas Turbine Dataset)", "After Handling Outliers (Capping)"), 
     ylab = col, 
     col = "lightblue", 
     outcol = "red"
@@ -104,22 +128,77 @@ for (col in numeric_columns) {
   dev.off()
 }
 
-# 3. Suppression des caractéristiques fortement corrélées
+# Boxplot pour chaque colonne numérique après le capping (AI4I Dataset)
+for (col in numeric_columns_ai4i) {
+  png(filename = paste0(plot_path, "/Boxplot_After_AI4I_", col, ".png"))
+  boxplot(
+    ai4i2020[[col]], 
+    main = paste("Boxplot for", col, "(AI4I Dataset)", "After Handling Outliers (Capping)"), 
+    ylab = col, 
+    col = "lightblue", 
+    outcol = "red"
+  )
+  dev.off()
+}
+#heatmap pour AI data set 
 
-# Charger les bibliothèques nécessaires
-library(ggcorrplot)
-library(gridExtra)
+# Vérifiez la structure des données pour voir les colonnes
+str(ai4i2020)
 
-# Calculer la matrice de corrélation avant la suppression
-cor_matrix <- cor(gt_combined[, numeric_columns], use = "complete.obs")
+# Si 'numeric_columns_ai4i' n'est pas défini ou contient des erreurs, créez-le :
+# Sélectionner les colonnes numériques de manière dynamique
+numeric_columns_ai4i <- sapply(ai4i2020, is.numeric)
+numeric_columns_ai4i <- names(ai4i2020)[numeric_columns_ai4i]
 
-# Tracer la matrice de corrélation avant suppression
-plot_before <- ggcorrplot(cor_matrix, hc.order = TRUE, type = "upper", lab = TRUE, 
-                          title = "Correlation Matrix Before")
+# Calculer la matrice de corrélation pour l'AI4I Dataset avec les bonnes colonnes numériques
+cor_matrix_ai4i <- cor(ai4i2020[, numeric_columns_ai4i], use = "complete.obs")
 
-# Identifier les caractéristiques fortement corrélées
-library(caret)
-highly_correlated <- findCorrelation(cor_matrix, cutoff = 0.8)
+# Transformer la matrice de corrélation en un format long pour ggplot
+cor_matrix_melt <- melt(cor_matrix_ai4i)
+
+# Créer et sauvegarder la heatmap comme avant
+cor_plot <- ggplot(data = cor_matrix_melt, aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1, 1)) +
+  theme_minimal() +
+  labs(title = "Matrice de Corrélation (AI4I Dataset)", x = "", y = "") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Sauvegarder le graphique dans un fichier JPG
+cor_plot_file <- paste(plot_path, "correlation_matrix_ai4i.jpg", sep = "/")
+ggsave(cor_plot_file, plot = cor_plot, width = 8, height = 6)
+
+
+#------------------------Exploration des données-------------------------------------
+
+# Visualisation des tendances pour le Gas Turbine Dataset
+for (col in numeric_columns_gt) {
+  png(filename = paste0(plot_path, "/Hist_GT_", col, ".png"))
+  hist(
+    gt_combined[[col]], 
+    main = paste("Histogram for", col, "(Gas Turbine Dataset)"), 
+    xlab = col, 
+    col = "lightgreen"
+  )
+  dev.off()
+}
+
+# Visualisation des tendances pour le AI4I Dataset
+for (col in numeric_columns_ai4i) {
+  png(filename = paste0(plot_path, "/Hist_AI4I_", col, ".png"))
+  hist(
+    ai4i2020[[col]], 
+    main = paste("Histogram for", col, "(AI4I Dataset)"), 
+    xlab = col, 
+    col = "lightgreen"
+  )
+  dev.off()
+}
+
+#---------------------------------------------------------------------------------------------------------------------------
+#GT DATA SET
+
+
 
 # Supprimer les colonnes fortement corrélées dans gt_combined
 gt_combined <- gt_combined[, -highly_correlated]
@@ -137,7 +216,7 @@ grid.arrange(plot_before, plot_after, ncol = 2)
 dev.off()
 
 
-
+#---------------------------------------------------------------------------
 
 
 # 4. Transformation de la variable cible (CO)
