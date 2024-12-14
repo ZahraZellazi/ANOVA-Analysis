@@ -271,23 +271,44 @@ ggsave(cor_plot_file, plot = cor_plot_gt, width = 8, height = 6)
 
 #---------------------------------------------------------------------------------------------------------------------------
 #GT DATA SET
+# Charger les bibliothèques nécessaires
+library(tidyverse)
+library(caret)
+library(ggcorrplot)
 
+# Sélectionner les colonnes numériques
+numeric_columns_gt <- sapply(gt_combined, is.numeric)
 
+# Récupérer les noms des colonnes numériques
+numeric_columns_gt_names <- names(gt_combined)[numeric_columns_gt]
 
-# Supprimer les colonnes fortement corrélées dans gt_combined
-gt_combined <- gt_combined[, -highly_correlated]
+# Fonction pour supprimer les colonnes fortement corrélées
+remove_highly_correlated <- function(data, threshold) {
+  cor_matrix <- cor(data, use = "everything")
+  highly_correlated <- findCorrelation(cor_matrix, cutoff = threshold)
+  if (length(highly_correlated) > 0) {
+    data <- data[, -highly_correlated]
+    return(remove_highly_correlated(data, threshold))
+  } else {
+    return(data)
+  }
+}
+
+# Supprimer les colonnes fortement corrélées
+gt_combined <- remove_highly_correlated(gt_combined[, numeric_columns_gt_names], threshold = 0.8)
 
 # Calculer la matrice de corrélation après suppression
-cor_matrix_reduced <- cor(gt_combined[, sapply(gt_combined, is.numeric)], use = "complete.obs")
+cor_matrix_reduced <- cor(gt_combined, use = "everything")
 
-# Tracer la matrice de corrélation après suppression
-plot_after <- ggcorrplot(cor_matrix_reduced, hc.order = TRUE, type = "upper", lab = TRUE, 
-                         title = "Correlation Matrix After")
+# Créer la heatmap
+cor_plot <- ggcorrplot(cor_matrix_reduced, hc.order = TRUE, type = "upper", lab = TRUE, 
+                       title = "Correlation Matrix After")
 
-# Combiner les deux graphiques dans une seule figure
-png(filename = paste0(plot_path, "Correlation_Matrices_Before_After.png"), width = 1200, height = 600)
-grid.arrange(plot_before, plot_after, ncol = 2)
-dev.off()
+# Sauvegarder le graphique dans un fichier JPG
+plot_path <- "/Users/zahra/Desktop/4DS/sem1/Stat/StatsProjet/plots"
+cor_plot_file <- paste(plot_path, "correlation_matrix_gt_after.jpg", sep = "/")
+ggsave(cor_plot_file, plot = cor_plot, width = 8, height = 6)
+
 
 
 #---------------------------------------------------------------------------
@@ -434,7 +455,7 @@ ggplot(gt_combined, aes(x = FailureCategory, y = CO)) +
   ylab("CO")
 
 
---------------------------Regression Linéaire---------------------------------
+#--------------------------Regression Linéaire---------------------------------
 # Modèle de régression par étapes.
 stepwise_model <- step(
   lm(CO ~ GTEP + AT + AP + AH + AFDP + TAT + TEY + NOX, data = train_data), 
