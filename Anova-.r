@@ -1,7 +1,14 @@
 # Installation des librairies nécessaires:
 install.packages(c("tidyverse", "ggplot2", "dplyr", "caret", "MASS", "reshape2", 
-                 "GGally", "robustbase", "ggcorrplot", "car", "lmtest", "nortest", "moments", "boot"))
+                   "GGally", "robustbase", "ggcorrplot", "car", "lmtest", "nortest", "moments", "boot"))
+install.packages("conflicted")
+library(conflicted)
+install.packages("ggplot2")
 
+conflict_prefer("filter", "dplyr")  # Précisez que vous préférez dplyr::filter
+conflict_prefer("select", "dplyr")  # Précisez que vous préférez dplyr::select
+update.packages(ask = FALSE)
+detach("package:MASS", unload = TRUE)
 # Charger les bibliothèques:
 library(tidyverse)
 library(robustbase)
@@ -30,7 +37,7 @@ ai4i2020 <- read.table(file = file.choose(), header = TRUE, sep = ",", dec = "."
 gt_combined <- rbind(gt_2011, gt_2012, gt_2013, gt_2014, gt_2015)
 
 # Creation d'un fichier pour stocker les graphes:
-plot_path <- "C:\\Users\\ameni\\OneDrive\\Desktop\\stat\\projet stat\\plots"
+plot_path <- "/Users/zahra/Desktop/4DS/sem1/Stat/StatsProjet/plots"
 if (!dir.exists(plot_path)) {
   dir.create(plot_path)
 }
@@ -43,6 +50,47 @@ str(gt_combined)
 # AI4I Dataset
 summary(ai4i2020)
 str(ai4i2020)
+# Visualisation des histogrammes
+# Gas Turbine Dataset
+for (column in colnames(gt_combined)) {
+  if (is.numeric(gt_combined[[column]])) {
+    # Calculate a dynamic binwidth based on the data range
+    range_values <- range(gt_combined[[column]], na.rm = TRUE)
+    binwidth <- (range_values[2] - range_values[1]) / (1 + log2(nrow(gt_combined))) # Sturges' formula
+    
+    # Generate the histogram
+    p <- ggplot(gt_combined, aes(x = .data[[column]])) +
+      geom_histogram(binwidth = binwidth, fill = "lightgreen", color = "black", alpha = 0.7) +
+      labs(title = paste("Histogram of", column), x = column, y = "Frequency") +
+      theme_minimal() +
+      theme(plot.title = element_text(hjust = 0.5)) # Center the title
+    
+    # Save the histogram
+    ggsave(filename = paste0(plot_path, "/histogram_gt_", column, ".jpg"), plot = p, width = 7, height = 5)
+  }
+}
+
+
+
+# AI4I Dataset
+for (column in colnames(ai4i2020)) {
+  if (is.numeric(ai4i2020[[column]])) {
+    # Dynamic binwidth: Sturges' formula for automatic bin determination
+    range_values <- range(ai4i2020[[column]], na.rm = TRUE)
+    binwidth <- (range_values[2] - range_values[1]) / (1 + log2(nrow(ai4i2020)))
+    
+    # Create histogram
+    p <- ggplot(ai4i2020, aes(x = .data[[column]])) +
+      geom_histogram(binwidth = binwidth, fill = "pink", color = "black", alpha = 0.7) +
+      labs(title = paste("Histogram of", column), x = column, y = "Frequency") +
+      theme_minimal() +
+      theme(plot.title = element_text(hjust = 0.5)) # Center the title
+    
+    # Save the plot
+    ggsave(filename = paste0(plot_path, "/histogram_ai4i_", column, ".jpg"), plot = p, width = 7, height = 5)
+  }
+}
+
 
 #------------------------Préparation des données-------------------------------------
 
