@@ -116,12 +116,12 @@ print(numeric_columns_ai4i)
 # Boxplot pour chaque colonne numérique avant le traitement des valeurs aberrantes
 # Pour le Gas Turbine Dataset
 for (col in numeric_columns_gt) {
-  png(filename = paste0(plot_path, "/Boxplot_Before_GT_", col, ".png"))
+  png(filename = paste0(plot_path, "/Boxplot_Before_GT_", col, ".jpg"))
   boxplot(
     gt_combined[[col]], 
     main = paste("Boxplot for", col, "Before Handling Outliers (Capping)"), 
     ylab = col, 
-    col = "lightblue", 
+    col = "grey", 
     outcol = "red"
   )
   dev.off()
