@@ -319,6 +319,11 @@ ggsave(cor_plot_file, plot = cor_plot, width = 8, height = 6)
 if ("CO" %in% names(gt_combined)) {
   gt_combined$CO <- log1p(gt_combined$CO)  # Transformation log1p pour éviter des valeurs infinies pour 0
 }
+# Avant transformation
+hist(gt_combined$CO, main = "CO Avant Transformation", xlab = "CO", col = "blue", breaks = 20)
+
+# Après transformation
+hist(log1p(gt_combined$CO), main = "CO Après Transformation", xlab = "log1p(CO)", col = "green", breaks = 20)
 
 # 5. Test de normalité avec Kolmogorov-Smirnov
 ks_test <- ks.test(gt_combined$CO, "pnorm", mean = mean(gt_combined$CO), sd = sd(gt_combined$CO))
@@ -332,7 +337,7 @@ if (ks_test$p.value < 0.05) {
     gt_combined$CO <- gt_combined$CO + abs(min(gt_combined$CO)) + 1
   }
   
-  # Appliquez la transformation Box-Cox
+  # Appliquer la transformation Box-Cox
   boxcox_trans <- boxcox(lm(CO ~ ., data = gt_combined))
   lambda <- boxcox_trans$x[which.max(boxcox_trans$y)]  # Trouver la valeur lambda optimale
   
