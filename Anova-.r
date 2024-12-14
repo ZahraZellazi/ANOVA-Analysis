@@ -406,7 +406,7 @@ for (var in numeric_columns) {
   if (var != "CO") {
     # Créez le graphique pour chaque variable
     plot <- ggplot(gt_combined, aes(x = .data[[var]], y = CO)) +
-      geom_point() +
+      geom_point(color = "lightgreen") +  # Changer la couleur des points en vert
       geom_smooth(method = "lm", col = "red") +
       ggtitle(paste("Scatterplot of CO vs", var)) +
       xlab(var) +
@@ -421,6 +421,7 @@ for (var in numeric_columns) {
            bg = "white")  # Définit un fond blanc
   }
 }
+
 # ----------------- Tests statistiques -----------------------------------
 # 2.1 T-Tests
 # Test t indépendant pour CO entre deux groupes
