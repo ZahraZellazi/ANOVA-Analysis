@@ -129,13 +129,13 @@ for (col in numeric_columns_gt) {
 
 # Pour le AI4I Dataset
 for (col in numeric_columns_ai4i) {
-  png(filename = paste0(plot_path, "/Boxplot_Before_AI4I_", col, ".png"))
+  png(filename = paste0(plot_path, "/Boxplot_Before_AI4I_", col, ".jpg"))
   boxplot(
     ai4i2020[[col]], 
     main = paste("Boxplot for", col, "Before Handling Outliers (Capping)"), 
     ylab = col, 
-    col = "lightblue", 
-    outcol = "red"
+    col = "grey", 
+    outcol = "orange"
   )
   dev.off()
 }
@@ -165,12 +165,12 @@ for (col in numeric_columns_ai4i) {
 
 # Boxplot pour chaque colonne numérique après le capping (Gas Turbine Dataset)
 for (col in numeric_columns_gt) {
-  png(filename = paste0(plot_path, "/Boxplot_After_GT_", col, ".png"))
+  png(filename = paste0(plot_path, "/Boxplot_After_GT_", col, ".jpg"))
   boxplot(
     gt_combined[[col]], 
     main = paste("Boxplot for", col, "(Gas Turbine Dataset)", "After Handling Outliers (Capping)"), 
     ylab = col, 
-    col = "lightblue", 
+    col = "lightgreen", 
     outcol = "red"
   )
   dev.off()
@@ -178,17 +178,18 @@ for (col in numeric_columns_gt) {
 
 # Boxplot pour chaque colonne numérique après le capping (AI4I Dataset)
 for (col in numeric_columns_ai4i) {
-  png(filename = paste0(plot_path, "/Boxplot_After_AI4I_", col, ".png"))
+  png(filename = paste0(plot_path, "/Boxplot_After_AI4I_", col, ".jpg"))
   boxplot(
     ai4i2020[[col]], 
     main = paste("Boxplot for", col, "(AI4I Dataset)", "After Handling Outliers (Capping)"), 
     ylab = col, 
-    col = "lightblue", 
-    outcol = "red"
+    col = "pink", 
+    outcol = "orange"
   )
   dev.off()
 }
 #heatmap pour AI data set 
+library(reshape2)
 
 # Vérifiez la structure des données pour voir les colonnes
 str(ai4i2020)
@@ -215,33 +216,58 @@ cor_plot <- ggplot(data = cor_matrix_melt, aes(x = Var1, y = Var2, fill = value)
 # Sauvegarder le graphique dans un fichier JPG
 cor_plot_file <- paste(plot_path, "correlation_matrix_ai4i.jpg", sep = "/")
 ggsave(cor_plot_file, plot = cor_plot, width = 8, height = 6)
+#-------------------GTcombined---------------------------
+# Charger les bibliothèques nécessaires
+library(tidyverse)
+library(reshape2)
 
+# Sélectionner les colonnes numériques
+numeric_columns_gt <- sapply(gt_combined, is.numeric)
+numeric_columns_gt <- names(gt_combined)[numeric_columns_gt]
+
+# Calculer la matrice de corrélation
+cor_matrix_gt <- cor(gt_combined[, numeric_columns_gt], use = "complete.obs")
+
+# Transformer la matrice de corrélation en format long
+cor_matrix_melt_gt <- melt(cor_matrix_gt)
+
+# Créer et sauvegarder la heatmap
+cor_plot_gt <- ggplot(data = cor_matrix_melt_gt, aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1, 1)) +
+  theme_minimal() +
+  labs(title = "Matrice de Corrélation (Gas Turbine Dataset)", x = "", y = "") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Sauvegarder la heatmap
+cor_plot_file <- paste(plot_path, "correlation_matrix_gt.jpg", sep = "/")
+ggsave(cor_plot_file, plot = cor_plot_gt, width = 8, height = 6)
 
 #------------------------Exploration des données-------------------------------------
 
 # Visualisation des tendances pour le Gas Turbine Dataset
-for (col in numeric_columns_gt) {
-  png(filename = paste0(plot_path, "/Hist_GT_", col, ".png"))
-  hist(
-    gt_combined[[col]], 
-    main = paste("Histogram for", col, "(Gas Turbine Dataset)"), 
-    xlab = col, 
-    col = "lightgreen"
-  )
-  dev.off()
-}
+#for (col in numeric_columns_gt) {
+# png(filename = paste0(plot_path, "/Hist_GT_", col, ".png"))
+#  hist(
+#    gt_combined[[col]], 
+#    main = paste("Histogram for", col, "(Gas Turbine Dataset)"), 
+#    xlab = col, 
+#    col = "lightgreen"
+#  )
+#  dev.off()
+#}
 
 # Visualisation des tendances pour le AI4I Dataset
-for (col in numeric_columns_ai4i) {
-  png(filename = paste0(plot_path, "/Hist_AI4I_", col, ".png"))
-  hist(
-    ai4i2020[[col]], 
-    main = paste("Histogram for", col, "(AI4I Dataset)"), 
-    xlab = col, 
-    col = "lightgreen"
-  )
-  dev.off()
-}
+#for (col in numeric_columns_ai4i) {
+#  png(filename = paste0(plot_path, "/Hist_AI4I_", col, ".png"))
+#  hist(
+#    ai4i2020[[col]], 
+#    main = paste("Histogram for", col, "(AI4I Dataset)"), 
+#    xlab = col, 
+#    col = "lightgreen"
+#  )
+#  dev.off()
+#}
 
 #---------------------------------------------------------------------------------------------------------------------------
 #GT DATA SET
