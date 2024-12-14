@@ -495,24 +495,25 @@ dev.off()
 #---------------------------------- ANOVA Analysis--------------------------------------
 
 # 1. Analyse ANOVA pour le modèle à sélection pas à pas (Stepwise Model)
-anova_results <- anova(stepwise_model)
-print(anova_results)  # Les résultats montrent que toutes les variables sélectionnées ont un effet significatif sur CO.
+# Charger les bibliothèques nécessaires
+library(tidyverse)
+library(caret)
 
-# Graphique de l'ANOVA pour le modèle pas à pas
-png(filename = paste0(plot_path, "Stepwise_ANOVA.png"))
-boxplot(CO ~ fitted(stepwise_model), data = train_data, 
-        main = "ANOVA: Modèle à sélection pas à pas", 
-        xlab = "Valeurs ajustées", ylab = "CO", 
-        col = "lightblue")
-dev.off()
+# Supposons que les modèles suivants soient définis :
+anova_model_1 <- lm(CO ~ GTEP + AT, data = train_data)
+anova_model_2 <- lm(CO ~ GTEP + AT + AP, data = train_data)
+anova_model_3 <- lm(CO ~ GTEP + AT + AP + AH, data = train_data)
+anova_model_4 <- lm(CO ~ GTEP + AT + AP + AH + AFDP, data = train_data)
+anova_model_5 <- lm(CO ~ GTEP + AT + AP + AH + AFDP + TAT, data = train_data)
 
-# 4. Comparer plusieurs modèles à l'aide de l'ANOVA
+# Comparaison des modèles via ANOVA
 anova_results_multiple <- anova(anova_model_1, anova_model_2, anova_model_3, anova_model_4, anova_model_5)
-print(anova_results_multiple)  # Display ANOVA results for multiple models.
+print(anova_results_multiple)
 
 # Graphique de l'ANOVA pour chaque modèle comparé
+plot_path <- "/Users/zahra/Desktop/4DS/sem1/Stat/StatsProjet/plots"  # Remplacez par le chemin souhaité
 png(filename = paste0(plot_path, "Multiple_Model_ANOVA.png"))
-par(mfrow = c(1, 5))  # Plusieurs graphiques sur une ligne
+par(mfrow = c(1, 5))
 models <- list(anova_model_1, anova_model_2, anova_model_3, anova_model_4, anova_model_5)
 for (i in 1:5) {
   boxplot(CO ~ fitted(models[[i]]), data = train_data,
@@ -520,31 +521,4 @@ for (i in 1:5) {
           col = "lightblue")
 }
 dev.off()
-
-# 5. Analyse ANOVA pour chaque variable prédictive
-variables <- c("AP", "AH", "TAT", "AFDP")
-for (var in variables) {
-  # Check if variable can be used in Bartlett's test
-  if (length(unique(gt_combined[[var]])) > 10) {
-    print(paste("Variable", var, "has too many unique values. Binning it for Bartlett's test."))
-    gt_combined[[var]] <- cut(gt_combined[[var]], breaks = 10)  # Bin the variable
-  }
-  
-  # Check for sufficient group sizes
-  if (all(table(gt_combined[[var]]) >= 2)) {
-    # Bartlett test
-    bartlett_test <- bartlett.test(as.formula(paste("CO ~ as.factor(", var, ")")), data = gt_combined)
-    print(paste("Bartlett test for", var, ":"))
-    print(bartlett_test)
-    
-    # Graphique pour chaque test de Bartlett
-    png(filename = paste0(plot_path, var, "_Bartlett_Test.png"))
-    boxplot(CO ~ as.factor(gt_combined[[var]]), data = gt_combined, 
-            main = paste("Bartlett Test for", var), 
-            xlab = var, ylab = "CO", col = "lightblue")
-    dev.off()
-  } else {
-    print(paste("Skipped Bartlett test for", var, "due to insufficient group sizes."))
-  }
-}
 
