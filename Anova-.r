@@ -1,14 +1,29 @@
-# Installation des librairies nécessaires:
-install.packages(c("tidyverse", "ggplot2", "dplyr", "caret", "MASS", "reshape2", 
-                   "GGally", "robustbase", "ggcorrplot", "car", "lmtest", "nortest", "moments", "boot"))
-install.packages("conflicted")
-library(conflicted)
-install.packages("ggplot2")
+# Liste des packages nécessaires
+required_packages <- c(
+  "tidyverse", "ggplot2", "dplyr", "caret", "MASS", "reshape2", 
+  "GGally", "robustbase", "ggcorrplot", "car", "lmtest", 
+  "nortest", "moments", "boot", "conflicted"
+)
 
-conflict_prefer("filter", "dplyr")  # Précisez que vous préférez dplyr::filter
-conflict_prefer("select", "dplyr")  # Précisez que vous préférez dplyr::select
-update.packages(ask = FALSE)
-detach("package:MASS", unload = TRUE)
+# Vérifier les packages non installés
+packages_to_install <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
+
+# Installer les packages manquants
+if (length(packages_to_install) > 0) {
+  install.packages(packages_to_install)
+} else {
+  message("Tous les packages sont déjà installés.")
+}
+
+# Charger les packages
+lapply(required_packages, library, character.only = TRUE)
+
+# Gestion des conflits si "conflicted" est installé
+if ("conflicted" %in% installed.packages()[, "Package"]) {
+  library(conflicted)
+  conflict_prefer("filter", "dplyr")  # Préciser que dplyr::filter est préféré
+  conflict_prefer("select", "dplyr")  # Préciser que dplyr::select est préféré
+}
 # Charger les bibliothèques:
 library(tidyverse)
 library(robustbase)
@@ -522,3 +537,141 @@ for (i in 1:5) {
 }
 dev.off()
 
+#------------------------------------------------AI DATA SET------------------------------------------------------------
+# Charger les bibliothèques nécessaires
+library(tidyverse)
+library(caret)
+library(ggcorrplot)
+
+# Sélectionner les colonnes numériques
+numeric_columns_ai4i <- sapply(ai4i2020, is.numeric)
+
+# Récupérer les noms des colonnes numériques
+numeric_columns_ai4i_names <- names(ai4i2020)[numeric_columns_ai4i]
+
+# Fonction pour supprimer les colonnes fortement corrélées
+remove_highly_correlated <- function(data, threshold) {
+  cor_matrix <- cor(data, use = "everything")
+  highly_correlated <- findCorrelation(cor_matrix, cutoff = threshold)
+  if (length(highly_correlated) > 0) {
+    data <- data[, -highly_correlated]
+    return(remove_highly_correlated(data, threshold))
+  } else {
+    return(data)
+  }
+}
+
+# Supprimer les colonnes fortement corrélées
+ai4i2020 <- remove_highly_correlated(ai4i2020[, numeric_columns_ai4i_names], threshold = 0.8)
+
+# Calculer la matrice de corrélation après suppression
+cor_matrix_reduced <- cor(ai4i2020, use = "everything")
+
+# Créer la heatmap
+cor_plot <- ggcorrplot(cor_matrix_reduced, hc.order = TRUE, type = "upper", lab = TRUE, 
+                       title = "Correlation Matrix After")
+
+# Sauvegarder le graphique dans un fichier JPG
+plot_path <- "/Users/zahra/Desktop/4DS/sem1/Stat/StatsProjet/plots"
+cor_plot_file <- paste(plot_path, "correlation_matrix_ai4i_after.jpg", sep = "/")
+ggsave(cor_plot_file, plot = cor_plot, width = 8, height = 6)
+
+#---------------------------------------------------------------------------
+
+# 4. Transformation de la variable cible (Machine.failure)
+if ("Machine.failure" %in% names(ai4i2020)) {
+  ai4i2020$Machine.failure <- log1p(ai4i2020$Machine.failure)
+}
+
+# Avant transformation
+hist(ai4i2020$Machine.failure, main = "Machine.failure Avant Transformation", 
+     xlab = "Machine.failure", col = "blue", breaks = 20)
+
+# Après transformation
+hist(log1p(ai4i2020$Machine.failure), main = "Machine.failure Après Transformation", 
+     xlab = "log1p(Machine.failure)", col = "green", breaks = 20)
+
+# 5. Test de normalité avec Kolmogorov-Smirnov
+ks_test <- ks.test(ai4i2020$Machine.failure, "pnorm", 
+                   mean = mean(ai4i2020$Machine.failure), 
+                   sd = sd(ai4i2020$Machine.failure))
+print(ks_test)
+# Tracer la courbe logarithmique de la distribution normale
+plot_path <- "/Users/zahra/Desktop/4DS/sem1/Stat/StatsProjet/plots"
+png(filename = paste0(plot_path, "KS_Normal_Comparison.png"))
+
+# Valeurs normales comparées
+x <- seq(min(ai4i2020$Machine.failure), max(ai4i2020$Machine.failure), length.out = 100)
+y <- dnorm(x, mean = mean(ai4i2020$Machine.failure), sd = sd(ai4i2020$Machine.failure))
+
+# Tracer la courbe normale théorique et les valeurs observées
+plot(x, y, type = "l", col = "blue", lwd = 2,
+     xlab = "Valeurs de Machine.failure", ylab = "Densité",
+     main = "Courbe Logarithmique de la Distribution Normale")
+
+# Ajouter les données observées
+hist(ai4i2020$Machine.failure, add = TRUE, col = rgb(0, 0, 1, 0.5), breaks = 20)
+
+dev.off()
+
+# 6. Ajouter des termes quadratiques ou interactions
+ai4i2020$Torque_squared <- ai4i2020$Torque..Nm.^2
+ai4i2020$AirTorque <- ai4i2020$Air.temperature..K. * ai4i2020$Torque..Nm.
+
+# 7. Division des données en ensembles d'entraînement et de test
+set.seed(123)
+train_indices <- sample(1:nrow(ai4i2020), 0.8 * nrow(ai4i2020))
+train_data <- ai4i2020[train_indices, ]
+test_data <- ai4i2020[-train_indices, ]
+
+# 8. Standardisation des données
+numeric_columns <- names(ai4i2020)[sapply(ai4i2020, is.numeric)]
+means <- sapply(train_data[, numeric_columns], mean)
+sds <- sapply(train_data[, numeric_columns], sd)
+train_data[, numeric_columns] <- scale(train_data[, numeric_columns], center = means, scale = sds)
+test_data[, numeric_columns] <- scale(test_data[, numeric_columns], center = means, scale = sds)
+
+# ----------------- Analyse statistique exploratoire -----------------------------------
+# 1. Analyse de corrélation
+correlation_matrix <- cor(train_data[, numeric_columns], use = "complete.obs")
+png(filename = paste0(plot_path, "pearson_correlation_ai4i.png"))
+heatmap(correlation_matrix, main = "Matrice de corrélation de Pearson (AI4I)", 
+        col = colorRampPalette(c("white", "lightblue"))(100), scale = "none")
+dev.off()
+
+spearman_correlation <- cor(train_data[, numeric_columns], method = "spearman")
+png(filename = paste0(plot_path, "spearman_correlation_ai4i.png"))
+heatmap(spearman_correlation, main = "Matrice de corrélation de Spearman (AI4I)", 
+        col = colorRampPalette(c("white", "lightblue"))(100), scale = "none")
+dev.off()
+
+# ----------------- Régression et modèles -----------------------------------
+# Modèle de régression par étapes
+stepwise_model <- step(
+  lm(Machine.failure ~ ., data = train_data), 
+  direction = "both",
+  trace = FALSE
+)
+summary(stepwise_model)
+
+# Diagnostics des résidus
+Residuals_stepwise <- resid(stepwise_model)
+png(filename = paste0(plot_path, "Stepwise_Fitted_vs_Residuals_ai4i.png"))
+plot(stepwise_model$fitted.values, Residuals_stepwise, 
+     main = "Residuals vs Fitted Values for Stepwise Model (AI4I)", 
+     xlab = "Fitted Values", ylab = "Residuals",
+     col = "lightblue", pch = 16)
+abline(h = 0, col = "red")
+dev.off()
+
+# Test de Breusch-Pagan
+bptest_stepwise <- bptest(stepwise_model)
+print(bptest_stepwise)
+
+# Analyse ANOVA pour plusieurs modèles
+anova_model_1 <- lm(Machine.failure ~ Torque..Nm., data = train_data)
+anova_model_2 <- lm(Machine.failure ~ Torque..Nm. + Air.temperature..K., data = train_data)
+anova_model_3 <- lm(Machine.failure ~ Torque..Nm. + Air.temperature..K. + Rotational.speed..rpm., data = train_data)
+
+anova_results_multiple <- anova(anova_model_1, anova_model_2, anova_model_3)
+print(anova_results_multiple)
