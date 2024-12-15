@@ -708,7 +708,6 @@ png(filename = paste0(plot_path, "wilcoxon_violinplot.png"))
 print(violin_plot)
 dev.off()
 
-
 # Test du Chi-Carré
 contingency_table <- table(ai4i2020$FailureCategory, ai4i2020$Machine.failure > median(ai4i2020$Machine.failure))
 chi_sq_test <- chisq.test(contingency_table)
