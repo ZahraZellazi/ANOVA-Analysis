@@ -731,33 +731,39 @@ ggplot(ai4i2020, aes(x = FailureCategory, y = Machine.failure)) +
   xlab("Catégorie") +
   ylab("Machine.failure")
 
-# ----------------- Régression et modèles -----------------------------------
-# Modèle de régression par étapes
-stepwise_model <- step(
-  lm(Machine.failure ~ ., data = train_data), 
-  direction = "both",
-  trace = FALSE
-)
-summary(stepwise_model)
+# ----------------- Régression lineaire  -----------------------------------
+# Chargement des bibliothèques nécessaires
+library(tidyverse)
+library(caret)
+names(train_data)
+# Spliter les données en ensemble d'entraînement et de test
+set.seed(123)
+train_indices <- sample(1:nrow(ai4i2020), 0.8 * nrow(ai4i2020))
+train_data <- ai4i2020[train_indices, ]
+test_data <- ai4i2020[-train_indices, ]
+
+# Modèle de régression linéaire avec des variables disponibles
+model <- lm(Machine.failure ~ Air.temperature..K. + Process.temperature..K. + 
+              Rotational.speed..rpm. + Torque..Nm. + Tool.wear..min., data = train_data)
+
+# Résumé du modèle
+summary(model)
 
 # Diagnostics des résidus
-Residuals_stepwise <- resid(stepwise_model)
-png(filename = paste0(plot_path, "Stepwise_Fitted_vs_Residuals_ai4i.png"))
-plot(stepwise_model$fitted.values, Residuals_stepwise, 
-     main = "Residuals vs Fitted Values for Stepwise Model (AI4I)", 
+Residuals <- resid(model)
+
+# Tracer les résidus par rapport aux valeurs ajustées
+plot_path <- "/Users/zahra/Desktop/4DS/sem1/Stat/StatsProjet/plots"
+png(filename = paste0(plot_path, "Fitted_vs_Residuals.png"))
+plot(model$fitted.values, Residuals, 
+     main = "Residuals vs Fitted Values for Model", 
      xlab = "Fitted Values", ylab = "Residuals",
-     col = "lightblue", pch = 16)
-abline(h = 0, col = "red")
+     col = "lightblue", pch = 16)  # Points colorés en bleu clair
+abline(h = 0, col = "red")  # Ligne de référence en rouge
 dev.off()
 
-# Test de Breusch-Pagan
-bptest_stepwise <- bptest(stepwise_model)
-print(bptest_stepwise)
-
-# Analyse ANOVA pour plusieurs modèles
-anova_model_1 <- lm(Machine.failure ~ Torque..Nm., data = train_data)
-anova_model_2 <- lm(Machine.failure ~ Torque..Nm. + Air.temperature..K., data = train_data)
-anova_model_3 <- lm(Machine.failure ~ Torque..Nm. + Air.temperature..K. + Rotational.speed..rpm., data = train_data)
-
-anova_results_multiple <- anova(anova_model_1, anova_model_2, anova_model_3)
-print(anova_results_multiple)
+# Tracer le graphique QQ pour vérifier la normalité des résidus
+png(filename = paste0(plot_path, "QQ_Plot.png"))
+qqnorm(Residuals, col = "lightblue")  # Points colorés en bleu clair
+qqline(Residuals, col = "red")  # Ligne QQ en rouge
+dev.off()
