@@ -640,13 +640,13 @@ summary(train_data[, numeric_columns])
 correlation_matrix <- cor(train_data[, numeric_columns], use = "complete.obs")
 png(filename = paste0(plot_path, "pearson_correlation_ai4i.png"))
 heatmap(correlation_matrix, main = "Matrice de corrélation de Pearson (AI4I)", 
-        col = colorRampPalette(c("white", "lightblue"))(100), scale = "none")
+        col = colorRampPalette(c("white", "pink"))(100), scale = "none")
 dev.off()
 
 spearman_correlation <- cor(train_data[, numeric_columns], method = "spearman")
 png(filename = paste0(plot_path, "spearman_correlation_ai4i.png"))
 heatmap(spearman_correlation, main = "Matrice de corrélation de Spearman (AI4I)", 
-        col = colorRampPalette(c("white", "lightblue"))(100), scale = "none")
+        col = colorRampPalette(c("white", "pink"))(100), scale = "none")
 dev.off()
 
 # ----------------- Régression et modèles -----------------------------------
