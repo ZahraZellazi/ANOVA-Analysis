@@ -668,6 +668,70 @@ for (var in numeric_columns) {
            bg = "white")  # Fond blanc
   }
 }
+#-----------------test statistiques--------------------
+#wilcox
+# Charger les bibliothèques nécessaires
+library(tidyverse)
+
+# Charger le jeu de données (assurez-vous de remplacer 'file.choose()' par le chemin réel du fichier)
+ai4i2020 <- read.table(file = file.choose(), header = TRUE, sep = ",", dec = ".", na.strings = "")
+
+# Transformation logarithmique de Machine.failure
+ai4i2020$Machine.failure <- log1p(ai4i2020$Machine.failure)
+
+# Calcul de la catégorie High/Low
+ai4i2020$FailureCategory <- ifelse(ai4i2020$Machine.failure > mean(ai4i2020$Machine.failure), "High", "Low")
+
+# Test de Wilcoxon pour Machine.failure par catégorie
+wilcox_test_result <- wilcox.test(Machine.failure ~ FailureCategory, data = ai4i2020)
+
+# Afficher le résultat du test
+print(wilcox_test_result)
+
+# Chargement des bibliothèques
+library(ggplot2)
+
+# Assurez-vous que Machine.failure est correctement transformé et que FailureCategory est bien défini
+ai4i2020$Machine.failure <- log1p(ai4i2020$Machine.failure)
+ai4i2020$FailureCategory <- ifelse(ai4i2020$Machine.failure > mean(ai4i2020$Machine.failure), "High", "Low")
+
+# Générer le violin plot
+violin_plot <- ggplot(ai4i2020, aes(x = FailureCategory, y = Machine.failure)) +
+  geom_violin(fill = "lightblue", color = "black") +
+  ggtitle("Violin plot de Machine.failure par catégorie") +
+  xlab("Catégorie") +
+  ylab("Machine.failure")
+
+# Sauvegarder le plot dans un fichier PNG
+plot_path <- "/Users/zahra/Desktop/4DS/sem1/Stat/StatsProjet/plots"
+png(filename = paste0(plot_path, "wilcoxon_violinplot.png"))
+print(violin_plot)
+dev.off()
+
+
+# Test du Chi-Carré
+contingency_table <- table(ai4i2020$FailureCategory, ai4i2020$Machine.failure > median(ai4i2020$Machine.failure))
+chi_sq_test <- chisq.test(contingency_table)
+print(chi_sq_test)
+
+# Graphique pour le test du Chi-Carré (Barplot)
+ggplot(as.data.frame(contingency_table), aes(x = Var1, fill = Var2)) +
+  geom_bar(position = "dodge") +
+  ggtitle("Test du Chi-Carré : Catégorie de défaillance vs Machine.failure > médiane") +
+  xlab("Catégorie") +
+  ylab("Fréquence") +
+  scale_fill_manual(values = c("lightblue", "lightgreen"))
+# Test de Kruskal-Wallis
+kruskal_test <- kruskal.test(Machine.failure ~ FailureCategory, data = ai4i2020)
+print(kruskal_test)
+
+# Graphique pour le test de Kruskal-Wallis (Boxplot)
+ggplot(ai4i2020, aes(x = FailureCategory, y = Machine.failure)) + 
+  geom_boxplot(fill = "lightblue", color = "black") +
+  ggtitle("Boxplot de Machine.failure par catégorie (Test de Kruskal-Wallis)") +
+  xlab("Catégorie") +
+  ylab("Machine.failure")
+
 # ----------------- Régression et modèles -----------------------------------
 # Modèle de régression par étapes
 stepwise_model <- step(
