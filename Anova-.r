@@ -634,7 +634,26 @@ test_data[, numeric_columns] <- scale(test_data[, numeric_columns], center = mea
 head(train_data[, numeric_columns])
 # Résumé statistique des colonnes standardisées dans l'ensemble d'entraînement
 summary(train_data[, numeric_columns])
-
+#Nuages de points pour Machine Failure par rapport aux autres variables :
+for (var in numeric_columns) {
+  if (var != "Machine.failure") {
+    # Créez le graphique pour chaque variable
+    plot <- ggplot(ai4i2020, aes(x = .data[[var]], y = Machine.failure)) +
+      geom_point(color = "pink") +  # Points en vert
+      geom_smooth(method = "lm", col = "red") +  # Ligne de régression en rouge
+      ggtitle(paste("Scatterplot of Machine.failure vs", var)) +
+      xlab(var) +
+      ylab("Machine.failure") +
+      theme_minimal()
+    
+    # Enregistrer le graphique dans un fichier PNG avec un fond blanc
+    ggsave(filename = paste0("scatterplot_Machine.failure_vs_", var, ".png"),
+           plot = plot,
+           path = plot_path,
+           width = 8, height = 6,
+           bg = "white")  # Fond blanc
+  }
+}
 # ----------------- Analyse statistique exploratoire -----------------------------------
 # 1. Analyse de corrélation
 correlation_matrix <- cor(train_data[, numeric_columns], use = "complete.obs")
