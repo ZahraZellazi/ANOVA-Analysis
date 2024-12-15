@@ -767,3 +767,56 @@ png(filename = paste0(plot_path, "QQ_Plot.png"))
 qqnorm(Residuals, col = "lightblue")  # Points colorés en bleu clair
 qqline(Residuals, col = "red")  # Ligne QQ en rouge
 dev.off()
+#-------------------------Annova--------------------------------------
+# Chargement des bibliothèques nécessaires
+library(tidyverse)
+library(caret)
+
+# Appliquer le modèle de régression stepwise avec les variables pertinentes
+anova_stepwise_model <- step(
+  lm(Machine.failure ~ Air.temperature..K. + Process.temperature..K. + 
+       Rotational.speed..rpm. + Torque..Nm. + Tool.wear..min., 
+     data = train_data), 
+  direction = "both",
+  trace = FALSE
+)
+
+# Application du test ANOVA
+anova_result_stepwise <- anova(anova_stepwise_model)
+
+# Afficher le résultat ANOVA
+print(anova_result_stepwise)
+
+# Graphique comparatif des modèles
+plot_path <- "/Users/zahra/Desktop/4DS/sem1/Stat/StatsProjet/plots"  # Remplacez par le chemin souhaité
+png(filename = paste0(plot_path, "Stepwise_Model_ANOVA.png"))
+boxplot(Machine.failure ~ fitted(anova_stepwise_model), data = train_data,
+        main = "Stepwise Model ANOVA", xlab = "Fitted Values", ylab = "Machine Failure",
+        col = "lightblue")
+dev.off()
+# Chargement des bibliothèques nécessaires
+library(tidyverse)
+library(caret)
+
+# Supposons que les modèles suivants soient définis avec ajout de variables :
+anova_model_1 <- lm(Machine.failure ~ Air.temperature..K., data = train_data)
+anova_model_2 <- lm(Machine.failure ~ Air.temperature..K. + Process.temperature..K., data = train_data)
+anova_model_3 <- lm(Machine.failure ~ Air.temperature..K. + Process.temperature..K. + Rotational.speed..rpm., data = train_data)
+anova_model_4 <- lm(Machine.failure ~ Air.temperature..K. + Process.temperature..K. + Rotational.speed..rpm. + Torque..Nm., data = train_data)
+anova_model_5 <- lm(Machine.failure ~ Air.temperature..K. + Process.temperature..K. + Rotational.speed..rpm. + Torque..Nm. + Tool.wear..min., data = train_data)
+
+# Comparaison des modèles via ANOVA
+anova_results_multiple <- anova(anova_model_1, anova_model_2, anova_model_3, anova_model_4, anova_model_5)
+print(anova_results_multiple)
+
+# Graphique pour visualiser les résultats ANOVA
+plot_path <- "/Users/zahra/Desktop/4DS/sem1/Stat/StatsProjet/plots"  # Remplacez par le chemin souhaité
+png(filename = paste0(plot_path, "Multiple_Model_ANOVA_with_addition.png"))
+par(mfrow = c(1, 5))
+models <- list(anova_model_1, anova_model_2, anova_model_3, anova_model_4, anova_model_5)
+for (i in 1:5) {
+  boxplot(Machine.failure ~ fitted(models[[i]]), data = train_data,
+          main = paste("Modèle", i), xlab = "Valeurs ajustées", ylab = "Machine.failure",
+          col = "lightblue")
+}
+dev.off()
