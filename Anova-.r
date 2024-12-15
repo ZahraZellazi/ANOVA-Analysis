@@ -630,6 +630,10 @@ means <- sapply(train_data[, numeric_columns], mean)
 sds <- sapply(train_data[, numeric_columns], sd)
 train_data[, numeric_columns] <- scale(train_data[, numeric_columns], center = means, scale = sds)
 test_data[, numeric_columns] <- scale(test_data[, numeric_columns], center = means, scale = sds)
+# Afficher les premières lignes des données standardisées
+head(train_data[, numeric_columns])
+# Résumé statistique des colonnes standardisées dans l'ensemble d'entraînement
+summary(train_data[, numeric_columns])
 
 # ----------------- Analyse statistique exploratoire -----------------------------------
 # 1. Analyse de corrélation
