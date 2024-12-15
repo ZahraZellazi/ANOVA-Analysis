@@ -634,6 +634,20 @@ test_data[, numeric_columns] <- scale(test_data[, numeric_columns], center = mea
 head(train_data[, numeric_columns])
 # Résumé statistique des colonnes standardisées dans l'ensemble d'entraînement
 summary(train_data[, numeric_columns])
+
+# ----------------- Analyse statistique exploratoire -----------------------------------
+# 1. Analyse de corrélation
+correlation_matrix <- cor(train_data[, numeric_columns], use = "complete.obs")
+png(filename = paste0(plot_path, "pearson_correlation_ai4i.png"))
+heatmap(correlation_matrix, main = "Matrice de corrélation de Pearson (AI4I)", 
+        col = colorRampPalette(c("white", "pink"))(100), scale = "none")
+dev.off()
+
+spearman_correlation <- cor(train_data[, numeric_columns], method = "spearman")
+png(filename = paste0(plot_path, "spearman_correlation_ai4i.png"))
+heatmap(spearman_correlation, main = "Matrice de corrélation de Spearman (AI4I)", 
+        col = colorRampPalette(c("white", "pink"))(100), scale = "none")
+dev.off()
 #Nuages de points pour Machine Failure par rapport aux autres variables :
 for (var in numeric_columns) {
   if (var != "Machine.failure") {
@@ -654,20 +668,6 @@ for (var in numeric_columns) {
            bg = "white")  # Fond blanc
   }
 }
-# ----------------- Analyse statistique exploratoire -----------------------------------
-# 1. Analyse de corrélation
-correlation_matrix <- cor(train_data[, numeric_columns], use = "complete.obs")
-png(filename = paste0(plot_path, "pearson_correlation_ai4i.png"))
-heatmap(correlation_matrix, main = "Matrice de corrélation de Pearson (AI4I)", 
-        col = colorRampPalette(c("white", "pink"))(100), scale = "none")
-dev.off()
-
-spearman_correlation <- cor(train_data[, numeric_columns], method = "spearman")
-png(filename = paste0(plot_path, "spearman_correlation_ai4i.png"))
-heatmap(spearman_correlation, main = "Matrice de corrélation de Spearman (AI4I)", 
-        col = colorRampPalette(c("white", "pink"))(100), scale = "none")
-dev.off()
-
 # ----------------- Régression et modèles -----------------------------------
 # Modèle de régression par étapes
 stepwise_model <- step(
