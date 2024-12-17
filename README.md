@@ -48,7 +48,7 @@ The following R packages are required:
 🚀 How to Run
 1.📥 Clone the Repository: Clone this project to your local machine using Git:
 
-git clone https://github.com/username/anova-statistical-analysis.git
+git clone https://github.com/ZahraZellazi/ANOVA-Analysis.git
 
 2.🖥️ Set Up the Environment: Open the Anova-.r file in RStudio or any R-compatible editor.
 
