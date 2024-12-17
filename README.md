@@ -29,20 +29,25 @@ This project performs a comprehensive statistical analysis on two datasets: **Ga
 
 The following R packages are required:
 
-```r
-required_packages <- c(
-  "tidyverse", "ggplot2", "dplyr", "caret", "MASS", "reshape2", 
-  "GGally", "robustbase", "ggcorrplot", "car", "lmtest", 
-  "nortest", "moments", "boot", "conflicted"
-)
-
-# 📦 Install missing packages:
-packages_to_install <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
-if (length(packages_to_install) > 0) {
-  install.packages(packages_to_install)
-}
+- **tidyverse**
+- **ggplot2**
+- **dplyr**
+- **caret**
+- **MASS**
+- **reshape2**
+- **GGally**
+- **robustbase**
+- **ggcorrplot**
+- **car**
+- **lmtest**
+- **nortest**
+- **moments**
+- **boot**
+- **conflicted**
+  
 🚀 How to Run
 1.📥 Clone the Repository: Clone this project to your local machine using Git:
+
 git clone https://github.com/username/anova-statistical-analysis.git
 
 2.🖥️ Set Up the Environment: Open the Anova-.r file in RStudio or any R-compatible editor.
