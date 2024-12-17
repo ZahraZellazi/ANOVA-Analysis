@@ -1,4 +1,4 @@
-# 🎉 ANOVA Statistical Analysis Project 🎉
+  # ANOVA Statistical Analysis Project 
 
 This project performs a comprehensive statistical analysis on two datasets: **Gas Turbine Dataset** and **AI4I Dataset**. The focus is on **ANOVA (Analysis of Variance)** to uncover key factors influencing the target variables. Additionally, the project includes exploratory data analysis, visualization, and preprocessing steps to ensure reliable results.
 
