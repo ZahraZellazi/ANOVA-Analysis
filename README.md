@@ -44,8 +44,11 @@ The following R packages are required:
 - **moments**
 - **boot**
 - **conflicted**
-  
+
+---
+
 ## 🚀 How to Run
+
 1.📥 Clone the Repository: Clone this project to your local machine using Git:
 
 git clone https://github.com/ZahraZellazi/ANOVA-Analysis.git
@@ -56,7 +59,10 @@ git clone https://github.com/ZahraZellazi/ANOVA-Analysis.git
         💨 Gas Turbine Dataset (e.g., gt_2011.csv, gt_2012.csv).
         🤖 AI4I Dataset (e.g., ai4i2020.csv). Use the file selection prompt (file.choose()) to select each dataset as requested by the script.
 
+---
+
 ## 🏆 Results Overview
+
 💨 Gas Turbine Dataset:
 
 🎯 Target Variable: CO
@@ -66,7 +72,9 @@ git clone https://github.com/ZahraZellazi/ANOVA-Analysis.git
 🎯 Target Variable: Machine.failure
 📝 Key Insights: Explored failure trends, correlations, and performed regression analysis.
 
+---
 
 ## 🤝 Contributions
+
 Contributions are welcome! Fork the repository and submit your pull requests.
 
